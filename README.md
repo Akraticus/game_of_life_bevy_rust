@@ -1,1 +1,1 @@
-# game_of_life_bevy_rust
+# Game of Life in Rust using Bevy ECS
