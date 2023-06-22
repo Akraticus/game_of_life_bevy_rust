@@ -1,26 +1,35 @@
 use bevy::{prelude::*};
 
 #[derive(Resource, PartialEq)]
-struct GameState(f32);
+struct WillTick(bool);
+
+#[derive(Resource)]
+struct TickTimer(Timer);
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .insert_resource(GameState(0.0))
-        .add_system(read_input)
-        .add_system(test_system.run_if(resource_exists_and_equals(GameState(1.0))))
+        .insert_resource(TickTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))
+        .insert_resource(WillTick(false))
+        .add_system(iterate_tick_timer)
+        .add_system(update_will_tick.after(iterate_tick_timer))
+        .add_system(test_system.run_if(resource_exists_and_equals(WillTick(true))).after(update_will_tick))
         .run();
 }
 
-fn test_system(){
-    info!("test_system ran.");
+fn test_system(time:Res<Time>){
+    info!("Test System - Tick delta: {:?}", time.elapsed());
 }
 
-fn read_input(input:Res<Input<KeyCode>>, mut game_state:ResMut<GameState>){
-    if input.just_pressed(KeyCode::Space) {
-        game_state.0 = 1.0;
+fn update_will_tick(tick_timer:Res<TickTimer>, mut will_tick: ResMut<WillTick>){
+    if tick_timer.0.just_finished(){
+        will_tick.0 = true;
     }
-    else {
-        game_state.0 = 0.0;
+    else{
+        will_tick.0 = false;
     }
+}
+
+fn iterate_tick_timer(time:Res<Time>, mut tick_timer:ResMut<TickTimer>){
+    tick_timer.0.tick(time.delta());
 }
