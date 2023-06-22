@@ -5,7 +5,6 @@ pub struct TickPlugin;
 
 impl Plugin for TickPlugin{
     fn build(&self, app: &mut bevy::prelude::App) {
-
         app
             .insert_resource(TickTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))
             .insert_resource(WillTick(false))
@@ -18,7 +17,7 @@ impl Plugin for TickPlugin{
 pub struct WillTick(pub bool);
 
 #[derive(Resource)]
-struct TickTimer(Timer);
+pub struct TickTimer(pub Timer);
 
 fn update_will_tick(tick_timer:Res<TickTimer>, mut will_tick: ResMut<WillTick>){
     if tick_timer.0.just_finished(){
