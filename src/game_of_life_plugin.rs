@@ -1,5 +1,8 @@
-use bevy::prelude::*;
+use bevy::{prelude::*};
 use bevy_ecs_tilemap::prelude::*;
+use rand::prelude::*;
+
+use crate::tick_plugin::WillTick;
 
 pub struct GameOfLifePlugin;
 
@@ -8,8 +11,22 @@ impl Plugin for GameOfLifePlugin{
         app
             .add_plugin(TilemapPlugin)
             .add_startup_system(setup)
-            .add_system(movement);
+            .add_system(set_texture_based_on_cell_type)
+            .add_system(random_change_cell_type.run_if(resource_exists_and_equals(WillTick(true))))
+            ;
     }
+}
+
+#[derive(Component, Default)]
+pub struct Cell{
+    pub cell_type:CellType
+}
+
+#[derive(Default)]
+pub enum CellType{
+    #[default]
+    Dead,
+    Alive
 }
 
 fn setup(mut commands:Commands, asset_server:Res<AssetServer>){
@@ -41,6 +58,7 @@ fn setup(mut commands:Commands, asset_server:Res<AssetServer>){
                     tilemap_id: TilemapId(tilemap_entity),
                     ..Default::default()
                 })
+                .insert(Cell::default())
                 .id();
             tile_storage.set(&tile_pos, tile_entity);
         }
@@ -62,46 +80,24 @@ fn setup(mut commands:Commands, asset_server:Res<AssetServer>){
     });
 }
 
-pub fn movement(
-    time: Res<Time>,
-    keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&mut Transform, &mut OrthographicProjection), With<Camera>>,
-) {
-    for (mut transform, mut ortho) in query.iter_mut() {
-        let mut direction = Vec3::ZERO;
-
-        if keyboard_input.pressed(KeyCode::A) {
-            direction -= Vec3::new(1.0, 0.0, 0.0);
+fn set_texture_based_on_cell_type(mut query:Query<(&Cell, &mut TileTextureIndex)>){
+    for (cell, mut tile_texture) in query.iter_mut() {
+        // assets/tiles.png
+        match cell.cell_type{
+            CellType::Alive => tile_texture.0 = 5,
+            CellType::Dead => tile_texture.0 = 4
         }
+    }
+}
 
-        if keyboard_input.pressed(KeyCode::D) {
-            direction += Vec3::new(1.0, 0.0, 0.0);
+fn random_change_cell_type(mut query: Query<&mut Cell>){
+    let mut rng = rand::thread_rng();
+
+    for mut cell in query.iter_mut(){
+        match rng.gen_range(0..=1){
+            0 => cell.cell_type = CellType::Dead,
+            1 => cell.cell_type = CellType::Alive,
+            _ => ()
         }
-
-        if keyboard_input.pressed(KeyCode::W) {
-            direction += Vec3::new(0.0, 1.0, 0.0);
-        }
-
-        if keyboard_input.pressed(KeyCode::S) {
-            direction -= Vec3::new(0.0, 1.0, 0.0);
-        }
-
-        if keyboard_input.pressed(KeyCode::Z) {
-            ortho.scale += 0.1;
-        }
-
-        if keyboard_input.pressed(KeyCode::X) {
-            ortho.scale -= 0.1;
-        }
-
-        if ortho.scale < 0.5 {
-            ortho.scale = 0.5;
-        }
-
-        let z = transform.translation.z;
-        transform.translation += time.delta_seconds() * direction * 500.;
-        // Important! We need to restore the Z values when moving the camera around.
-        // Bevy has a specific camera setup and this can mess with how our layers are shown.
-        transform.translation.z = z;
     }
 }

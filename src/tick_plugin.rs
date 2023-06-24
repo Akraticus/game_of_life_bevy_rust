@@ -6,7 +6,7 @@ pub struct TickPlugin;
 impl Plugin for TickPlugin{
     fn build(&self, app: &mut bevy::prelude::App) {
         app
-            .insert_resource(TickTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))
+            .insert_resource(TickTimer(Timer::from_seconds(0.5, TimerMode::Repeating)))
             .insert_resource(WillTick(false))
             .add_system(iterate_tick_timer)
             .add_system(update_will_tick.after(iterate_tick_timer));
