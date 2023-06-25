@@ -1,18 +1,34 @@
+
 use bevy::{prelude::*};
 
 mod tick_plugin;
 use tick_plugin::*;
 mod game_of_life_plugin;
+mod utility;
 
+#[derive(States, Default, Debug, Hash, PartialEq, Eq, Clone)]
+pub enum AppState{
+    InMenu,
+    #[default]
+    InGame,
+    Paused
+}
 
 fn main() {
     App::new()
+        .add_state::<AppState>()
         .add_plugins(DefaultPlugins)
         .add_plugin(TickPlugin)
         .add_plugin(game_of_life_plugin::GameOfLifePlugin)
+        .add_system(test_system.in_set(TurnSystemSet))
         .add_startup_system(setup)
         .add_system(movement)
+
         .run();
+}
+
+fn test_system(time: Res<Time>){
+    info!("Time: {}", time.elapsed_seconds());
 }
 
 fn setup(mut commands:Commands){

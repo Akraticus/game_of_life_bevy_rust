@@ -2,7 +2,7 @@ use bevy::{prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 use rand::prelude::*;
 
-use crate::tick_plugin::WillTick;
+use crate::{utility::keycode_just_pressed, tick_plugin::TurnSystemSet};
 
 pub struct GameOfLifePlugin;
 
@@ -12,7 +12,8 @@ impl Plugin for GameOfLifePlugin{
             .add_plugin(TilemapPlugin)
             .add_startup_system(setup)
             .add_system(set_texture_based_on_cell_type)
-            .add_system(random_change_cell_type.run_if(resource_exists_and_equals(WillTick(true))))
+            // .add_system(random_change_cell_type.run_if(resource_exists_and_equals(WillTick(true))))
+            .add_system(random_change_cell_type.in_set(TurnSystemSet))
             ;
     }
 }

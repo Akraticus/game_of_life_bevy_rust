@@ -1,5 +1,9 @@
 use bevy::prelude::*;
 
+use crate::AppState;
+
+#[derive(SystemSet, Hash, Debug, Eq, PartialEq, Clone)]
+pub struct TurnSystemSet;
 
 pub struct TickPlugin;
 
@@ -7,27 +11,21 @@ impl Plugin for TickPlugin{
     fn build(&self, app: &mut bevy::prelude::App) {
         app
             .insert_resource(TickTimer(Timer::from_seconds(0.5, TimerMode::Repeating)))
-            .insert_resource(WillTick(false))
-            .add_system(iterate_tick_timer)
-            .add_system(update_will_tick.after(iterate_tick_timer));
+            .configure_set(TurnSystemSet
+                .run_if(in_state(AppState::InGame)
+                    .and_then(tick_timer_finished))
+            )
+            .add_system(iterate_tick_timer.run_if(in_state(AppState::InGame)));
     }
 }
-
-#[derive(Resource, PartialEq)]
-pub struct WillTick(pub bool);
 
 #[derive(Resource)]
 pub struct TickTimer(pub Timer);
 
-fn update_will_tick(tick_timer:Res<TickTimer>, mut will_tick: ResMut<WillTick>){
-    if tick_timer.0.just_finished(){
-        will_tick.0 = true;
-    }
-    else{
-        will_tick.0 = false;
-    }
-}
-
 fn iterate_tick_timer(time:Res<Time>, mut tick_timer:ResMut<TickTimer>){
     tick_timer.0.tick(time.delta());
+}
+
+fn tick_timer_finished(tick_timer:Res<TickTimer>) -> bool{
+    tick_timer.0.just_finished()
 }
