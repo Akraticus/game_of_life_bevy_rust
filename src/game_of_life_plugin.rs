@@ -119,7 +119,7 @@ fn iterate_board_state(mut tile_map_query:Query<(&TileStorage, &TilemapSize)>, m
                 let neighbours = Neighbors::get_square_neighboring_positions(&tile_pos, tile_map_size, true).entities(tile_storage);
                 let mut alive_neighbours = 0;
                 for entity in neighbours.iter() {
-                    if let Ok(mut cell) = tile_query.get(*entity){
+                    if let Ok(cell) = tile_query.get(*entity){
                         alive_neighbours += match cell.cell_state{
                             CellState::Alive =>  1,
                             CellState::Dead => 0
