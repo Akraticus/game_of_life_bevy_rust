@@ -3,6 +3,7 @@ use bevy::{prelude::*};
 
 mod tick_plugin;
 use tick_plugin::*;
+use utility::{send_event, keycode_just_pressed};
 mod game_of_life_plugin;
 mod utility;
 
@@ -23,7 +24,9 @@ fn main() {
         .add_system(test_system.in_set(TurnSystemSet))
         .add_startup_system(setup)
         .add_system(movement)
-
+        .add_system(send_event::<IterationPauseToggleEvent>.run_if(keycode_just_pressed(KeyCode::Space)))
+        .add_system(send_event::<IterationSpeedIncreaseEvent>.run_if(keycode_just_pressed(KeyCode::Up)))
+        .add_system(send_event::<IterationSpeedDecreaseEvent>.run_if(keycode_just_pressed(KeyCode::Down)))
         .run();
 }
 

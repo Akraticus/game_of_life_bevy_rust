@@ -8,17 +8,6 @@ use crate::{tick_plugin::TurnSystemSet};
 
 pub struct GameOfLifePlugin;
 
-impl Plugin for GameOfLifePlugin{
-    fn build(&self, app: &mut App) {
-        app
-            .add_plugin(TilemapPlugin)
-            .add_startup_system(setup)
-            .add_system(set_texture_based_on_cell_type)
-            .add_system(iterate_board_state.in_set(TurnSystemSet))
-            ;
-    }
-}
-
 #[derive(Component, Default)]
 pub struct Cell{
     pub cell_state:CellState
@@ -31,11 +20,22 @@ pub enum CellState{
     Alive
 }
 
+impl Plugin for GameOfLifePlugin{
+    fn build(&self, app: &mut App) {
+        app
+            .add_plugin(TilemapPlugin)
+            .add_startup_system(setup)
+            .add_system(set_texture_based_on_cell_type)
+            .add_system(iterate_board_state.in_set(TurnSystemSet))
+            ;
+    }
+}
+
 fn setup(mut commands:Commands, asset_server:Res<AssetServer>){
     
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
     
-    let map_size = TilemapSize { x: 32, y: 32 };
+    let map_size = TilemapSize { x: 64, y: 64 };
     
     // Create a tilemap entity a little early.
     // We want this entity early because we need to tell each tile which tilemap entity
